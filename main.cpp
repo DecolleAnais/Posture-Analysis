@@ -1,16 +1,33 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
-using namespace cv;
+#include "BackgroundExtractor.h"
 
 int main() {
-    VideoCapture cap(0);
-    Mat frame;
+    cv::Mat frame, result, back;
     char key;
+    BackgroundExtractor bgext("Support analyse - Reference.avi");
+
+    std::cout << "Analysing" << std::endl;
+
+    cv::VideoCapture cap("Support analyse bras reference.avi");
+
+
     while(key != 'Q' && key != 'q') {
-        cap.read(frame);
-        imshow("Posture Analysis", frame);
-        key = waitKey(30);
+        bool readed = cap.read(frame);
+        if(!readed)
+            break;
+
+        bgext.getMask(frame, result);
+
+        bgext.bgsm2->getBackgroundImage(back);
+        imshow("Background", back);
+
+        imshow("Result", result);
+
+        key = cv::waitKey(30);
     }
+
+    cap.release();
     return 0;
 }
