@@ -5,6 +5,7 @@
 #include "opencv2/opencv.hpp"
 #include "opencv2/bgsegm.hpp"
 
+
 #ifndef POSTURE_ANALYSIS_BACKGROUNDEXTRACTOR_H
 #define POSTURE_ANALYSIS_BACKGROUNDEXTRACTOR_H
 
@@ -19,7 +20,7 @@ public:
     void learnFromBGReference(const std::string &reference);
     void getMask(const cv::InputArray &source, cv::OutputArray &mask);
 
-    cv::Ptr<cv::BackgroundSubtractorMOG2> bgsm2;
+    cv::Ptr<cv::BackgroundSubtractor> mog;
     std::string bGReference;
 };
 

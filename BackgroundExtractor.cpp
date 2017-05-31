@@ -5,10 +5,10 @@
 #include "BackgroundExtractor.h"
 
 BackgroundExtractor::BackgroundExtractor() :
-        bgsm2(cv::createBackgroundSubtractorMOG2(/*100, 64, false*/)) {}
+        mog(cv::bgsegm::createBackgroundSubtractorMOG()) {}
 
 BackgroundExtractor::BackgroundExtractor(const std::string &reference) :
-        bgsm2(cv::createBackgroundSubtractorMOG2(100, 64, false)),
+        mog(cv::bgsegm::createBackgroundSubtractorMOG()),
         bGReference(reference) {
     learnFromBGReference();
 }
@@ -39,7 +39,7 @@ void BackgroundExtractor::learnFromBGReference(){
         reading = cap.read(frameReference);
         if (!reading)
             break;
-        bgsm2->apply(frameReference, maskTemp, 1);
+        mog->apply(frameReference, maskTemp);
     }
 
     cap.release();
@@ -47,7 +47,7 @@ void BackgroundExtractor::learnFromBGReference(){
 }
 
 void BackgroundExtractor::getMask(const cv::InputArray &source, cv::OutputArray &mask){
-    bgsm2->apply(source, mask, 0);
+    mog->apply(source, mask, 0);
 }
 
 
