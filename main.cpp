@@ -20,6 +20,7 @@ int main() {
 
         // foreground extractor
         bgext.getMask(frame, mask_foreground);
+        dilate(mask_foreground, mask_foreground, cv::Mat::ones(5,5,CV_32F), cv::Point(-1,-1), 5, 1, 1);
         cv::bitwise_and(frame, frame, foreground, mask_foreground);
 
         // skin color extractor
