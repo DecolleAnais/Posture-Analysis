@@ -26,6 +26,8 @@ int main() {
         // increase the quality with dilate
         dilate(mask_foreground, mask_foreground, cv::Mat::ones(5,5,CV_32F), cv::Point(-1,-1), 5, 1, 1);
         // apply the foreground extractor on the original frame
+        dilate(mask_foreground, mask_foreground, cv::Mat::ones(5,5,CV_32F), cv::Point(-1,-1), 2, 1, 1);
+        imshow("Mask", mask_foreground);
         cv::bitwise_and(frame, frame, foreground, mask_foreground);
 
 

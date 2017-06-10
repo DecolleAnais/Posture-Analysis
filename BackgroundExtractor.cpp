@@ -23,7 +23,7 @@ void BackgroundExtractor::learnFromBGReference(const std::string &reference){
 }
 
 void BackgroundExtractor::learnFromBGReference(){
-    std::cout << "Loading " << bGReference << std::endl;
+    std::cout << "Learning from " << bGReference << std::endl;
     cv::VideoCapture cap(bGReference);
     bool reading;
     cv::Mat frameReference, maskTemp;
