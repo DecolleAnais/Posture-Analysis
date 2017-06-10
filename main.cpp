@@ -2,6 +2,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "BackgroundExtractor.h"
+#include "BlobExtractor.h"
 
 int main() {
     cv::Mat frame, result, foreground, mask_foreground;
@@ -12,6 +13,8 @@ int main() {
 
     cv::VideoCapture cap("Analyse analyse.avi");
 
+    BlobExtractor blobExtractor;
+
 
     while(key != 'Q' && key != 'q') {
         bool readed = cap.read(frame);
@@ -20,28 +23,18 @@ int main() {
 
         // foreground extractor
         bgext.getMask(frame, mask_foreground);
+        // increase the quality with dilate
+        dilate(mask_foreground, mask_foreground, cv::Mat::ones(5,5,CV_32F), cv::Point(-1,-1), 5, 1, 1);
+        // apply the foreground extractor on the original frame
         cv::bitwise_and(frame, frame, foreground, mask_foreground);
 
-        // skin color extractor
-        // create a mask to filter the skin color
-        cv::Mat hsv_foreground, mask_color;
-        cvtColor(foreground, hsv_foreground, cv::COLOR_BGR2HSV);
-        // skin color mask in HSV
-        cv::Scalar low_color_hsv = cv::Scalar(0,30,60,0);
-        cv::Scalar high_color_hsv = cv::Scalar(20,150,255,0);
 
-        inRange(hsv_foreground, low_color_hsv, high_color_hsv, mask_color);
-
-        // increase the quality with dilate
-        erode(mask_color, mask_color, cv::Mat::ones(2,2,CV_32F), cv::Point(-1,-1), 2, 1, 1);
-        dilate(mask_color, mask_color, cv::Mat::ones(3,3,CV_32F), cv::Point(-1,-1), 5, 1, 1);
-
-        // contours detection
+        // skin-colored blobs extractor
         std::vector< std::vector< cv::Point > > contours;
         std::vector<cv::Vec4i> hierarchy;
-        cv::findContours(mask_color, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+        unsigned int nbBlobs = blobExtractor.getSkinBlobs(foreground, contours, hierarchy);
 
-        if(!contours.empty()) {
+        if(nbBlobs > 0) {
             // fusion of close contours
             // TODO https://dsp.stackexchange.com/questions/2564/opencv-c-connect-nearby-contours-based-on-distance-between-them
             /*unsigned int id_contour = 0;
