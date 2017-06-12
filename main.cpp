@@ -54,7 +54,10 @@ int main() {
             cv::drawContours(frame, contours, -1, cv::Scalar(255,0,0), 1, 8, hierarchy);
         }
 
-
+        nbBlobs = blobExtractor.getRedBlobs(foreground, contours, hierarchy);
+        if(nbBlobs > 0) {
+            cv::drawContours(frame, contours, -1, cv::Scalar(0,0,255), 1, 8, hierarchy);
+        }
 
 
 
