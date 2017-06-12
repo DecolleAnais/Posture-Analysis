@@ -4,6 +4,8 @@
 #include "BackgroundExtractor.h"
 #include "BlobExtractor.h"
 
+#define PI 3.14159265
+
 int main() {
     cv::Mat frame, result, foreground, mask_foreground;
     char key;
@@ -33,68 +35,90 @@ int main() {
         // skin-colored blobs extractor
         std::vector<std::vector<cv::Point>> contours;
         std::vector<cv::Vec4i> hierarchy;
-        unsigned int nbBlobs = blobExtractor.getSkinBlobs(foreground, contours, hierarchy);
-        if(nbBlobs == 3) {
-            // Get OBB of each contours
-            cv::RotatedRect leftArmOBB = cv::minAreaRect(contours[0]);
-            cv::RotatedRect headOBB = cv::minAreaRect(contours[1]);
-            cv::RotatedRect rightArmOBB = cv::minAreaRect(contours[2]);
-
-            // Get four vertex of OBB
-            cv::Point2f leftArmPoints[4];
-            leftArmOBB.points(leftArmPoints);
-            // Get direction points of OBB
-            cv::Point2f leftArmStart = cv::Point2f(leftArmOBB.center.x + cos(leftArmOBB.angle) * (-leftArmOBB.size.height/2.0),
-                                                   leftArmOBB.center.y + sin(leftArmOBB.angle) * (-leftArmOBB.size.height/2.0));
-            cv::Point2f leftArmEnd = cv::Point2f(leftArmOBB.center.x + cos(leftArmOBB.angle) * (leftArmOBB.size.height/2.0),
-                                                 leftArmOBB.center.y + sin(leftArmOBB.angle) * (leftArmOBB.size.height/2.0));
-
-            cv::Point2f headPoints[4];
-            headOBB.points(headPoints);
-            cv::Point2f rightArmPoints[4];
-            rightArmOBB.points(rightArmPoints);
-
-            cv::arrowedLine(frame, leftArmStart, leftArmEnd, (0,0,255), 1, 8 );
-            for( int j = 0; j < 4; j++ )
-                cv::line(frame, leftArmPoints[j], leftArmPoints[(j+1)%4], (0,0,255), 1, 8 );
-            for( int j = 0; j < 4; j++ )
-                cv::line(frame, headPoints[j], headPoints[(j+1)%4], (0,0,255), 1, 8 );
-            for( int j = 0; j < 4; j++ )
-                cv::line(frame, rightArmPoints[j], rightArmPoints[(j+1)%4], (0,0,255), 1, 8 );
-
-
-
-            cv::drawContours(frame, contours, -1, cv::Scalar(255,0,0), 1, 8, hierarchy);
+        unsigned int nbSkinBlobs = blobExtractor.getSkinBlobs(foreground, contours, hierarchy);
+        if(nbSkinBlobs == 3) {
             // sort contours by the position on the x axis
             blobExtractor.sortContoursByPositionX(contours);
-            // draw the center for each contour
-            for(unsigned int i = 0;i < nbBlobs;i++) {
-                cv::RotatedRect rect = cv::minAreaRect(contours[i]);
-                // draw the center
+
+            std::vector<std::vector<cv::Point>> redContours;
+            std::vector<cv::Vec4i> redHierarchy;
+            unsigned int nbRedBlobs = blobExtractor.getRedBlobs(foreground, redContours, redHierarchy);
+            // red blobs
+            if(nbRedBlobs > 0) {
+                // draw the contour
+                // cv::drawContours(frame, contours, -1, cv::Scalar(0,0,255), 1, 8, hierarchy);
+                // draw the center of the contour
+                cv::RotatedRect rect = cv::minAreaRect(redContours[0]);
+                cv::rectangle(frame, rect.boundingRect(), cv::Scalar(0,0,255), 1, 8, 0);
                 cv::circle(frame, rect.center, 5, cv::Scalar(0,255,0), -1, 8, 0);
-                // put the number
-                cv::putText(frame, std::to_string(i), rect.center, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255,0,0));
             }
+
+
+            for(unsigned int i = 0;i < nbSkinBlobs;i++) {
+                // Get OBB of contours
+                cv::RotatedRect OBB = cv::minAreaRect(contours[i]);
+
+                // draw the center
+                cv::circle(frame, OBB.center, 5, cv::Scalar(0,255,0), -1, 8, 0);
+                // put the number
+                //cv::putText(frame, std::to_string(i), OBB.center, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255,0,0));
+
+                // Get four vertex of OBB
+                std::vector<cv::Point2f> vertex;
+                cv::Point2f vertexArray[4];
+                OBB.points(vertexArray);
+                for(int i = 0; i < 4; ++i){
+                    vertex.push_back(vertexArray[i]);
+                }
+
+                // Get direction points of OBB
+                cv::Point2f start1 = cv::Point2f(OBB.center.x + sin(-PI * OBB.angle / 180.0) * (-OBB.size.height/2.0),
+                                                OBB.center.y + cos(-PI * OBB.angle / 180.0) * (-OBB.size.height/2.0));
+                cv::Point2f end1 = cv::Point2f(OBB.center.x + sin(-PI * OBB.angle / 180.0) * (OBB.size.height/2.0),
+                                              OBB.center.y + cos(-PI * OBB.angle / 180.0) * (OBB.size.height/2.0));
+                cv::Point2f start2 = cv::Point2f(OBB.center.x + sin(-PI * (OBB.angle + 90) / 180.0) * (-OBB.size.width/2.0),
+                                                OBB.center.y + cos(-PI * (OBB.angle + 90) / 180.0) * (-OBB.size.width/2.0));
+                cv::Point2f end2 = cv::Point2f(OBB.center.x + sin(-PI * (OBB.angle + 90) / 180.0) * (OBB.size.width/2.0),
+                                              OBB.center.y + cos(-PI * (OBB.angle + 90) / 180.0) * (OBB.size.width/2.0));
+
+                float dist1 = sqrt(pow(end1.x - start1.x, 2) + pow(end1.y - start1.y, 2));
+                float dist2 = sqrt(pow(end2.x - start2.x, 2) + pow(end2.y - start2.y, 2));
+
+                cv::Point2f start, end;
+                if(dist1 > dist2){
+                    start = start1;
+                    end = end1;
+                }
+                else{
+                    start = start2;
+                    end = end2;
+                }
+
+                // Draw OBB & direction
+                cv::arrowedLine(frame, start, end, (255,0,0), 1, 8 );
+                for( int j = 0; j < 4; j++ )
+                    cv::line(frame, vertex[j], vertex[(j+1)%4], (0,0,255), 1, 8 );
+
+            }
+
+            //cv::drawContours(frame, contours, -1, cv::Scalar(255,0,0), 1, 8, hierarchy);
         }
-
-        nbBlobs = blobExtractor.getRedBlobs(foreground, contours, hierarchy);
-        // red blobs
-        if(nbBlobs > 0) {
-            // draw the contour
-            cv::drawContours(frame, contours, -1, cv::Scalar(0,0,255), 1, 8, hierarchy);
-            // draw the center of the contour
-            cv::RotatedRect rect = cv::minAreaRect(contours[0]);
-            cv::rectangle(frame, rect.boundingRect(), cv::Scalar(0,0,255), 1, 8, 0);
-            cv::circle(frame, rect.center, 5, cv::Scalar(0,255,0), -1, 8, 0);
-        }
-
-
 
         imshow("Result", frame);
 
         foreground = cv::Mat();
 
+        // Interactions
         key = cv::waitKey(30);
+
+        bool pause = false;
+        if(key == 'p' || key == 'P')
+            pause = true;
+        while(pause){
+            key = cv::waitKey(30);
+            if(key == 'p' || key == 'P')
+                pause = false;
+        }
     }
 
     cap.release();
