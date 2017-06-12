@@ -18,9 +18,20 @@ public:
      */
     unsigned int getSkinBlobs(cv::Mat foreground, std::vector< std::vector< cv::Point > > &contours, std::vector<cv::Vec4i> &hierarchy);
 
+    /**
+     * Fill a vector of contours of red-colored regions and their hierarchy
+     * @param foreground frame to analyze
+     * @param contours a vector of contours of red-colored regions
+     * @param hierarchy hierarchy of the contours
+     * @return the number of contours of red-colored regions detected
+     */
     unsigned int getRedBlobs(cv::Mat foreground, std::vector< std::vector< cv::Point > > &contours, std::vector<cv::Vec4i> &hierarchy);
 
-    bool isClose(std::vector< cv::Point > contour1, std::vector< cv::Point > contour2);
+    /**
+     * Sort contours by the position on the x axis (left to right on the screen)
+     * @param contours vector of contours to sort
+     */
+    void sortContoursByPositionX(std::vector< std::vector< cv::Point > > &contours);
 
 private:
 };

@@ -65,11 +65,27 @@ int main() {
 
 
             cv::drawContours(frame, contours, -1, cv::Scalar(255,0,0), 1, 8, hierarchy);
+            // sort contours by the position on the x axis
+            blobExtractor.sortContoursByPositionX(contours);
+            // draw the center for each contour
+            for(unsigned int i = 0;i < nbBlobs;i++) {
+                cv::RotatedRect rect = cv::minAreaRect(contours[i]);
+                // draw the center
+                cv::circle(frame, rect.center, 5, cv::Scalar(0,255,0), -1, 8, 0);
+                // put the number
+                cv::putText(frame, std::to_string(i), rect.center, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255,0,0));
+            }
         }
 
         nbBlobs = blobExtractor.getRedBlobs(foreground, contours, hierarchy);
+        // red blobs
         if(nbBlobs > 0) {
+            // draw the contour
             cv::drawContours(frame, contours, -1, cv::Scalar(0,0,255), 1, 8, hierarchy);
+            // draw the center of the contour
+            cv::RotatedRect rect = cv::minAreaRect(contours[0]);
+            cv::rectangle(frame, rect.boundingRect(), cv::Scalar(0,0,255), 1, 8, 0);
+            cv::circle(frame, rect.center, 5, cv::Scalar(0,255,0), -1, 8, 0);
         }
 
 
