@@ -36,29 +36,31 @@ int main() {
         std::vector<cv::Vec4i> hierarchy;
         unsigned int nbBlobs = blobExtractor.getSkinBlobs(foreground, contours, hierarchy);
 
+        // skin blobs
         if(nbBlobs > 0) {
-            // fusion of close contours
-            // TODO https://dsp.stackexchange.com/questions/2564/opencv-c-connect-nearby-contours-based-on-distance-between-them
-            /*unsigned int id_contour = 0;
-            float min_area = 0;
-            for(std::vector< cv::Point > contour : contours) {
-                // calculation of the area of the detected blob
-                cv::Moments mu = moments(contours[id_contour]);
-                float area = mu.m00;
-                if(area > min_area) {
-
-                }
-                id_contour++;
-            }*/
-
-
-
+            // draw contours
             cv::drawContours(frame, contours, -1, cv::Scalar(255,0,0), 1, 8, hierarchy);
+            // sort contours by the position on the x axis
+            blobExtractor.sortContoursByPositionX(contours);
+            // draw the center for each contour
+            for(unsigned int i = 0;i < nbBlobs;i++) {
+                cv::RotatedRect rect = cv::minAreaRect(contours[i]);
+                // draw the center
+                cv::circle(frame, rect.center, 5, cv::Scalar(0,255,0), -1, 8, 0);
+                // put the number
+                cv::putText(frame, std::to_string(i), rect.center, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255,0,0));
+            }
         }
 
         nbBlobs = blobExtractor.getRedBlobs(foreground, contours, hierarchy);
+        // red blobs
         if(nbBlobs > 0) {
+            // draw the contour
             cv::drawContours(frame, contours, -1, cv::Scalar(0,0,255), 1, 8, hierarchy);
+            // draw the center of the contour
+            cv::RotatedRect rect = cv::minAreaRect(contours[0]);
+            cv::rectangle(frame, rect.boundingRect(), cv::Scalar(0,0,255), 1, 8, 0);
+            cv::circle(frame, rect.center, 5, cv::Scalar(0,255,0), -1, 8, 0);
         }
 
 
