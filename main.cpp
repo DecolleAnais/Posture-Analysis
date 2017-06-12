@@ -27,29 +27,40 @@ int main() {
         dilate(mask_foreground, mask_foreground, cv::Mat::ones(5,5,CV_32F), cv::Point(-1,-1), 5, 1, 1);
         // apply the foreground extractor on the original frame
         dilate(mask_foreground, mask_foreground, cv::Mat::ones(5,5,CV_32F), cv::Point(-1,-1), 2, 1, 1);
-        imshow("Mask", mask_foreground);
         cv::bitwise_and(frame, frame, foreground, mask_foreground);
 
 
         // skin-colored blobs extractor
-        std::vector< std::vector< cv::Point > > contours;
+        std::vector<std::vector<cv::Point>> contours;
         std::vector<cv::Vec4i> hierarchy;
         unsigned int nbBlobs = blobExtractor.getSkinBlobs(foreground, contours, hierarchy);
+        if(nbBlobs == 3) {
+            // Get OBB of each contours
+            cv::RotatedRect leftArmOBB = cv::minAreaRect(contours[0]);
+            cv::RotatedRect headOBB = cv::minAreaRect(contours[1]);
+            cv::RotatedRect rightArmOBB = cv::minAreaRect(contours[2]);
 
-        if(nbBlobs > 0) {
-            // fusion of close contours
-            // TODO https://dsp.stackexchange.com/questions/2564/opencv-c-connect-nearby-contours-based-on-distance-between-them
-            /*unsigned int id_contour = 0;
-            float min_area = 0;
-            for(std::vector< cv::Point > contour : contours) {
-                // calculation of the area of the detected blob
-                cv::Moments mu = moments(contours[id_contour]);
-                float area = mu.m00;
-                if(area > min_area) {
+            // Get four vertex of OBB
+            cv::Point2f leftArmPoints[4];
+            leftArmOBB.points(leftArmPoints);
+            // Get direction points of OBB
+            cv::Point2f leftArmStart = cv::Point2f(leftArmOBB.center.x + cos(leftArmOBB.angle) * (-leftArmOBB.size.height/2.0),
+                                                   leftArmOBB.center.y + sin(leftArmOBB.angle) * (-leftArmOBB.size.height/2.0));
+            cv::Point2f leftArmEnd = cv::Point2f(leftArmOBB.center.x + cos(leftArmOBB.angle) * (leftArmOBB.size.height/2.0),
+                                                 leftArmOBB.center.y + sin(leftArmOBB.angle) * (leftArmOBB.size.height/2.0));
 
-                }
-                id_contour++;
-            }*/
+            cv::Point2f headPoints[4];
+            headOBB.points(headPoints);
+            cv::Point2f rightArmPoints[4];
+            rightArmOBB.points(rightArmPoints);
+
+            cv::arrowedLine(frame, leftArmStart, leftArmEnd, (0,0,255), 1, 8 );
+            for( int j = 0; j < 4; j++ )
+                cv::line(frame, leftArmPoints[j], leftArmPoints[(j+1)%4], (0,0,255), 1, 8 );
+            for( int j = 0; j < 4; j++ )
+                cv::line(frame, headPoints[j], headPoints[(j+1)%4], (0,0,255), 1, 8 );
+            for( int j = 0; j < 4; j++ )
+                cv::line(frame, rightArmPoints[j], rightArmPoints[(j+1)%4], (0,0,255), 1, 8 );
 
 
 

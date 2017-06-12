@@ -21,15 +21,10 @@ unsigned int BlobExtractor::getSkinBlobs(cv::Mat foreground, std::vector< std::v
     inRange(hsv_foreground, low_color_hsv, middle_low_color_hsv, low_mask_color); // first mask : lower
     inRange(hsv_foreground, middle_high_color_hsv, high_color_hsv, high_mask_color); // second mask : upper
     bitwise_or(low_mask_color, high_mask_color, mask_color); // merge of the two masks
-    cv::imshow("Mask color", mask_color);
 
     // increase the quality with erode (decrease the noise) and dilate (fill the holes)
     erode(mask_color, mask_color, cv::Mat::ones(9, 9,CV_32F), cv::Point(-1,-1), 1, 1, 1);
     dilate(mask_color, mask_color, cv::Mat::ones(11,11,CV_32F), cv::Point(-1,-1), 2, 1, 1);
-
-    cv::imshow("Mask color opened", mask_color);
-    erode(mask_color, mask_color, cv::Mat::ones(3,3,CV_32F), cv::Point(-1,-1), 2, 1, 1);
-    dilate(mask_color, mask_color, cv::Mat::ones(9,9,CV_32F), cv::Point(-1,-1), 4, 1, 1);
 
     // contours detection
     cv::findContours(mask_color, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
