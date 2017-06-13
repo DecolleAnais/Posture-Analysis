@@ -3,7 +3,7 @@ project(Posture_Analysis)
 
 set(CMAKE_CXX_STANDARD 14)
 
-set(SOURCE_FILES main.cpp BackgroundExtractor.cpp BackgroundExtractor.h BlobExtractor.cpp BlobExtractor.h)
+set(SOURCE_FILES main.cpp BackgroundExtractor.cpp BackgroundExtractor.h BlobExtractor.cpp BlobExtractor.h Skeleton.cpp Skeleton.h)
 add_executable(Posture_Analysis ${SOURCE_FILES})
 
 # include opencv
