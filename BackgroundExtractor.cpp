@@ -17,36 +17,31 @@ void BackgroundExtractor::setBGReference(const std::string &reference) {
     bGReference = reference;
 }
 
-void BackgroundExtractor::learnFromBGReference(const std::string &reference){
-    setBGReference(reference);
-    learnFromBGReference();
-}
-
 void BackgroundExtractor::learnFromBGReference(){
     std::cout << "Learning from " << bGReference << std::endl;
+
     cv::VideoCapture cap(bGReference);
+
     bool reading;
     cv::Mat frameReference, maskTemp;
     int i = 0;
 
-    // Read single image from video
-    /*reading = cap.read(frame);
-    if(!reading)
-        bgsm2->apply(frame, mask, -1);*/
-
     // Read full video
     while(true) {
         reading = cap.read(frameReference);
-        if (!reading)
+        if (!reading) // End of learning video
             break;
+
+        // Extract the foreground mask with auto learning
         mog->apply(frameReference, maskTemp);
     }
 
     cap.release();
-    std::cout << "Learned" << std::endl;
+    std::cout << "Finished learning" << std::endl;
 }
 
 void BackgroundExtractor::getMask(const cv::InputArray &source, cv::OutputArray &mask){
+    // Extract the foreground mask WITHOUT learning
     mog->apply(source, mask, 0);
 }
 

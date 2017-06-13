@@ -69,6 +69,7 @@ Skeleton::Skeleton(std::vector<std::vector<cv::Point>> skinBlob, cv::Point cente
         // Create the member from OBB
         Member member(OBB, center);
 
+        // Assign member to the right field
         switch(i){
             case 0 :
                 rightArm_ = member;
