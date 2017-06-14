@@ -84,7 +84,7 @@ Skeleton::Skeleton(std::vector<std::vector<cv::Point>> skinBlob, cv::Point cente
     }
 }
 
-void Skeleton::draw(cv::Mat frame){
+void Skeleton::draw(cv::Mat frame, bool skeleton_display, bool boxes_display){
     Member member;
     for(unsigned int i = 0;i < 3;i++) {
         switch(i){
@@ -100,19 +100,24 @@ void Skeleton::draw(cv::Mat frame){
         }
 
         // Draw the center
-        cv::circle(frame, member.getOBB().center, 5, cv::Scalar(0,255,0), -1, 8, 0);
+        if(boxes_display)
+            cv::circle(frame, member.getOBB().center, 5, cv::Scalar(0,255,0), -1, 8, 0);
 
         // Draw skeleton
-        cv::line(frame, member.getStart(), member.getEnd(), (255, 0, 0), 1, 8);
-        cv::line(frame, member.getStart(), center_, (255, 0, 0), 1, 8);
-        cv::circle(frame, member.getStart(), 5, cv::Scalar(255, 0, 0), -1, 8, 0);
-        cv::circle(frame, member.getEnd(), 5, cv::Scalar(255, 0, 0), -1, 8, 0);
+        if(skeleton_display) {
+            cv::line(frame, member.getStart(), member.getEnd(), (255, 0, 0), 1, 8);
+            cv::line(frame, member.getStart(), center_, (255, 0, 0), 1, 8);
+            cv::circle(frame, member.getStart(), 5, cv::Scalar(255, 0, 0), -1, 8, 0);
+            cv::circle(frame, member.getEnd(), 5, cv::Scalar(255, 0, 0), -1, 8, 0);
+        }
 
         // Draw OBB
-        cv::Point2f vertex[4];
-        member.getOBB().points(vertex);
-        for( int j = 0; j < 4; j++ )
-            cv::line(frame, vertex[j], vertex[(j+1)%4], (0,0,255), 1, 8 );
+        if(boxes_display) {
+            cv::Point2f vertex[4];
+            member.getOBB().points(vertex);
+            for( int j = 0; j < 4; j++ )
+                cv::line(frame, vertex[j], vertex[(j+1)%4], (0,0,255), 1, 8 );
+        }
     }
 }
 

@@ -67,8 +67,10 @@ public:
     /**
      * Drawing function for the skeleton.
      * @param frame Picture on which the skeleton will be drawn.
+     * @param skeleton_display Draw the skeleton or not
+     * @param boxes_displau Draw the bounding boxes or not
      */
-    void draw(cv::Mat frame);
+    void draw(cv::Mat frame, bool skeleton_display, bool boxes_display);
 
     cv::Point getCenter();
     Member getLeftArm();

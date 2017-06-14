@@ -5,7 +5,16 @@
 #include "BlobExtractor.h"
 #include "Skeleton.h"
 
-char interract(){
+// display booleans
+bool skeleton_display = true;
+bool boxes_display = true;
+bool contours_display = false;
+
+char interract(cv::Mat &frame){
+    // Display keys
+    cv::putText(frame, "Pause/Play : P    Skeleton : S    Bounding Boxes : B", cv::Point(frame.cols/2 , 15), cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255,255,255), 1);
+    cv::putText(frame, "Contours : C    Quit : Q", cv::Point(frame.cols/2, 30), cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255,255,255), 1);
+
     char key = cv::waitKey(30);
 
     // Pause
@@ -16,6 +25,18 @@ char interract(){
         key = cv::waitKey(30);
         if(key == 'p' || key == 'P')
             pause = false;
+    }
+    // skeleton display
+    if(key == 'S' || key == 's') {
+        skeleton_display ? skeleton_display = false : skeleton_display = true;
+    }
+    // bounding boxes display
+    if(key == 'B' || key == 'b') {
+        boxes_display ? boxes_display = false : boxes_display = true;
+    }
+    // contours display
+    if(key == 'C' || key == 'c') {
+        contours_display ? contours_display = false : contours_display = true;
     }
 
     return key;
@@ -56,7 +77,7 @@ int main() {
             /***** Frame Cleanup *****/
             foreground = cv::Mat();
             /***** Interactions *****/
-            key = interract();
+            key = interract(frame);
             imshow("Result", frame);
             continue;
         }
@@ -72,18 +93,12 @@ int main() {
             /***** Frame Cleanup *****/
             foreground = cv::Mat();
             /***** Interactions *****/
-            key = interract();
+            key = interract(frame);
             imshow("Result", frame);
             continue;
         }
         // Get the OBB of the shirt
         cv::RotatedRect rect = cv::minAreaRect(redContours[0]);
-        // draw the contour
-        // cv::drawContours(frame, contours, -1, cv::Scalar(0,0,255), 1, 8, hierarchy);
-        // Draw the AABB of the shirt
-        cv::rectangle(frame, rect.boundingRect(), cv::Scalar(0,0,255), 1, 8, 0);
-        // draw the center of the contour
-        cv::circle(frame, rect.center, 5, cv::Scalar(0,255,0), -1, 8, 0);
 
 
         /***** Skin Blob analysis *****/
@@ -109,21 +124,34 @@ int main() {
         }
 
 
-
+        /***** Interactions *****/
+        key = interract(frame);
 
         /***** Image drawing *****/
-        //cv::drawContours(frame, contours, -1, cv::Scalar(255,0,0), 1, 8, hierarchy);
+        // contours display
+        if(contours_display) {
+            // draw the skin contours
+            cv::drawContours(frame, skinContours, -1, cv::Scalar(255,0,0), 1, 8, skinHierarchy);
+            // draw the red contours
+            cv::drawContours(frame, redContours, -1, cv::Scalar(0,0,255), 1, 8, redHierarchy);
+        }
+
+        // bounding boxes display
+        if(boxes_display) {
+            // Draw the AABB of the shirt
+            cv::rectangle(frame, rect.boundingRect(), cv::Scalar(0,0,255), 1, 8, 0);
+            // draw the center of the contour
+            cv::circle(frame, rect.center, 5, cv::Scalar(0,255,0), -1, 8, 0);
+        }
+
         // Draw skeleton
-        sk.draw(frame);
+        sk.draw(frame, skeleton_display, boxes_display);
         // Display picture
         imshow("Result", frame);
 
 
         /***** Frame Cleanup *****/
         foreground = cv::Mat();
-
-        /***** Interactions *****/
-        key = interract();
     }
 
     /***** Cleanup ******/
