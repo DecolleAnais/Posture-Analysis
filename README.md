@@ -8,11 +8,12 @@ Auffret Quentin 11508216
  - CMakeLists.txt : Fichier de compilation
  - Analyse Référence.avi : Vidéo de référence pour l'extraction de fond
  - Analyse analyse.avi : Vidéo à analyser par l'application
+ - Decolle_1609753_Auffret_11508216.pdf : Rapport du projet
 
 /***** Installation et compilation *****/
 L'application requiert les libraries suivantes :
  - CMake (sudo apt-get install cmake)
- - OpenCV avec les modules des contributeurs, disponible sur ce GitHub (avec la procédure d'installation) :
+ - OpenCV avec les modules contributeurs, disponible sur ce GitHub (avec la procédure d'installation) :
     https://github.com/opencv/opencv_contrib
 
 Pour compiler, allez dans le répertoire racine du projet et tapez les commandes :

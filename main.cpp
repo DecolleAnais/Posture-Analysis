@@ -9,23 +9,17 @@
 bool skeleton_display = true;
 bool boxes_display = true;
 bool contours_display = false;
+bool pause = false;
+bool run = true;
 
-char interract(cv::Mat &frame){
-    // Display keys
-    cv::putText(frame, "Pause/Play : P    Skeleton : S    Bounding Boxes : B", cv::Point(frame.cols/2 , 15), cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255,255,255), 1);
-    cv::putText(frame, "Contours : C    Quit : Q", cv::Point(frame.cols/2, 30), cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255,255,255), 1);
-
+char interract(){
     char key = cv::waitKey(30);
 
     // Pause
-    bool pause = false;
-    if(key == 'p' || key == 'P')
-        pause = true;
-    while(pause){
-        key = cv::waitKey(30);
-        if(key == 'p' || key == 'P')
-            pause = false;
+    if(key == 'p' || key == 'P'){
+        pause ? pause = false : pause = true;
     }
+
     // skeleton display
     if(key == 'S' || key == 's') {
         skeleton_display ? skeleton_display = false : skeleton_display = true;
@@ -37,6 +31,11 @@ char interract(cv::Mat &frame){
     // contours display
     if(key == 'C' || key == 'c') {
         contours_display ? contours_display = false : contours_display = true;
+    }
+
+    // exit
+    if(key == 'Q' || key == 'q'){
+        run = false;
     }
 
     return key;
@@ -53,7 +52,7 @@ int main() {
     cv::VideoCapture cap("Analyse analyse.avi");
 
     // Main loop
-    while(key != 'Q' && key != 'q') {
+    while(run) {
         bool readed = cap.read(frame);
         if(!readed)
             break;
@@ -77,8 +76,19 @@ int main() {
             /***** Frame Cleanup *****/
             foreground = cv::Mat();
             /***** Interactions *****/
-            key = interract(frame);
-            imshow("Result", frame);
+            do {
+                cv::Mat result; frame.copyTo(result);
+
+                key = interract();
+
+                /***** Image drawing *****/
+                // Display keys
+                cv::putText(result, "Pause/Play : P    Skeleton : S    Bounding Boxes : B", cv::Point(frame.cols/2 , 15), cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255,255,255), 1);
+                cv::putText(result, "Contours : C    Quit : Q", cv::Point(frame.cols/2, 30), cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255,255,255), 1);
+
+                // Display picture
+                imshow("Result", result);
+            }while(pause && run);
             continue;
         }
         // sort contours by the position on the x axis
@@ -93,8 +103,19 @@ int main() {
             /***** Frame Cleanup *****/
             foreground = cv::Mat();
             /***** Interactions *****/
-            key = interract(frame);
-            imshow("Result", frame);
+            do {
+                cv::Mat result; frame.copyTo(result);
+
+                key = interract();
+
+                /***** Image drawing *****/
+                // Display keys
+                cv::putText(result, "Pause/Play : P    Skeleton : S    Bounding Boxes : B", cv::Point(frame.cols/2 , 15), cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255,255,255), 1);
+                cv::putText(result, "Contours : C    Quit : Q", cv::Point(frame.cols/2, 30), cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255,255,255), 1);
+
+                // Display picture
+                imshow("Result", result);
+            }while(pause && run);
             continue;
         }
         // Get the OBB of the shirt
@@ -105,49 +126,62 @@ int main() {
         // Generate skeleton
         Skeleton sk(skinContours, rect.center);
 
+        cv::String action;
         if(sk.getLeftArm().getEnd().y < sk.getHead().getEnd().y &&
                 sk.getRightArm().getEnd().y < sk.getHead().getEnd().y)
         {
-            cv::putText(frame, "Action : STOP", cv::Point(10,30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,255), 2);
+            action = "Action : STOP/PLAY";
         }
         else if(sk.getLeftArm().getEnd().x > sk.getCenter().x + 1.0 * (float)rect.boundingRect().width)
         {
-            cv::putText(frame, "Action : SWIPE LEFT", cv::Point(10,30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,255), 2);
+            action = "Action : SWIPE LEFT";
         }
         else if(sk.getRightArm().getEnd().x < sk.getCenter().x - 1.0 * (float)rect.boundingRect().width)
         {
-            cv::putText(frame, "Action : SWIPE RIGHT", cv::Point(10,30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,255), 2);
+            action = "Action : SWIPE RIGHT";
         }
         else
         {
-            cv::putText(frame, "Action : NONE", cv::Point(10,30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,255), 2);
+            action = "Action : NONE";
         }
 
 
         /***** Interactions *****/
-        key = interract(frame);
+        do {
+            cv::Mat result; frame.copyTo(result);
 
-        /***** Image drawing *****/
-        // contours display
-        if(contours_display) {
-            // draw the skin contours
-            cv::drawContours(frame, skinContours, -1, cv::Scalar(255,0,0), 1, 8, skinHierarchy);
-            // draw the red contours
-            cv::drawContours(frame, redContours, -1, cv::Scalar(0,0,255), 1, 8, redHierarchy);
-        }
+            key = interract();
 
-        // bounding boxes display
-        if(boxes_display) {
-            // Draw the AABB of the shirt
-            cv::rectangle(frame, rect.boundingRect(), cv::Scalar(0,0,255), 1, 8, 0);
-            // draw the center of the contour
-            cv::circle(frame, rect.center, 5, cv::Scalar(0,255,0), -1, 8, 0);
-        }
+            /***** Image drawing *****/
+            // action display
+            cv::putText(result, action, cv::Point(10,30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,255), 2);
 
-        // Draw skeleton
-        sk.draw(frame, skeleton_display, boxes_display);
-        // Display picture
-        imshow("Result", frame);
+            // Display keys
+            cv::putText(result, "Pause/Play : P    Skeleton : S    Bounding Boxes : B", cv::Point(frame.cols/2 , 15), cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255,255,255), 1);
+            cv::putText(result, "Contours : C    Quit : Q", cv::Point(frame.cols/2, 30), cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255,255,255), 1);
+
+            // contours display
+            if (contours_display) {
+                // draw the skin contours
+                cv::drawContours(result, skinContours, -1, cv::Scalar(255, 0, 0), 1, 8, skinHierarchy);
+                // draw the red contours
+                cv::drawContours(result, redContours, -1, cv::Scalar(0, 0, 255), 1, 8, redHierarchy);
+            }
+
+            // bounding boxes display
+            if (boxes_display) {
+                // Draw the AABB of the shirt
+                cv::rectangle(result, rect.boundingRect(), cv::Scalar(0, 0, 255), 1, 8, 0);
+                // draw the center of the contour
+                cv::circle(result, rect.center, 5, cv::Scalar(0, 255, 0), -1, 8, 0);
+            }
+
+            // Draw skeleton
+            sk.draw(result, skeleton_display, boxes_display);
+
+            // Display picture
+            imshow("Result", result);
+        }while(pause && run);
 
 
         /***** Frame Cleanup *****/
